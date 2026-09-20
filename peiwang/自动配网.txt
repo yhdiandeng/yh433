@@ -1,0 +1,69 @@
+bool flang = 1;
+#include <WiFi.h>
+#define BUTTON_PIN 33  // 使GPIO 0作为按键引脚（可以根据硬件情况更改）
+void peiwang()；
+void setup() {
+  // put your setup code here, to run once:
+
+  Serial.begin(115200); // 设置串口波特率
+
+ peiwang();
+  //Blinker.begin(auth, WiFi.SSID().c_str(), WiFi.psk().c_str());//点灯库可以用点灯的wifi库
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
+void peiwang()
+{
+  pinMode(BUTTON_PIN, INPUT_PULLUP);  // 设置按键引脚为输入并启用上拉电阻
+
+  // 检查按键是否被按下
+  if (digitalRead(BUTTON_PIN) == LOW) {  // 如果按键按下，进入配网模式
+    Serial.println("Button pressed, clearing Wi-Fi settings...");
+    WiFi.eraseAP();//清除配网信息
+    WiFi.disconnect(true, true);  // 清除保存的Wi-Fi信息
+ //ESP.restart();
+    delay(1000);  // 给清除过程一些时间
+  }
+
+  // 检查是否有保存的Wi-Fi配置信息
+  if (WiFi.status() != WL_CONNECTED) {
+    WiFi.begin();  // 尝试连接保存的Wi-Fi
+    Serial.println("Trying to connect to saved Wi-Fi...");
+
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+      delay(500);
+      Serial.print(".");
+      attempts++;
+    }
+  }
+
+  // 如果无法自动连接Wi-Fi，则进入SmartConfig模式
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\nStarting SmartConfig...");
+    WiFi.beginSmartConfig();  // 启动SmartConfig
+
+    while (!WiFi.smartConfigDone()) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("SmartConfig Success");
+ ESP.restart();
+  }
+
+  // 确保连接成功
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi已连接.");
+  Serial.print("IP地址: ");
+  Serial.println(WiFi.localIP());
+
+
+
+}
